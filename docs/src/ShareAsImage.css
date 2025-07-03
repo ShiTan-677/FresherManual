@@ -1,0 +1,72 @@
+/**
+ * ShareAsImage.css - Styles for the ShareAsImage plugin
+ * Enhances the visual appearance of the share button and image preview
+ */
+
+/* Share button animation */
+.share-image-button {
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.share-image-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Image preview container animation */
+.share-image-container {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Image preview animation */
+.share-image-preview {
+  animation: scaleIn 0.3s ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Action buttons animation */
+.share-image-action-button {
+  transition: all 0.2s ease;
+}
+
+.share-image-action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Close button animation */
+.share-image-close {
+  transition: all 0.2s ease;
+}
+
+.share-image-close:hover {
+  transform: rotate(90deg);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .share-image-button {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  
+  .share-image-preview {
+    max-width: 95%;
+  }
+  
+  .share-image-action-button {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
