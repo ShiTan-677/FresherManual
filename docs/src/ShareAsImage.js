@@ -11,7 +11,7 @@
   const config = {
     buttonText: '分享为图片',
     watermarkText: '树礼书院新生手册',
-    watermarkUrl: 'https://shuli-gz-1259749012.cos.ap-guangzhou.myqcloud.com/img/ShuLiLogo1.png',
+    logoUrl: 'res/img/ShuLiLogo1.png',
     backgroundColor: '#ffffff',
     textColor: '#34495e',
     fontFamily: '"hk4e_zh-cn", Georgia, Times New Roman, serif',
@@ -156,30 +156,27 @@
     textContent.innerHTML = selection.toString().replace(/\n/g, '<br>');
     container.appendChild(textContent);
     
-    // Add watermark
-    const watermark = document.createElement('div');
-    watermark.style.display = 'flex';
-    watermark.style.alignItems = 'center';
-    watermark.style.position = 'absolute';
-    watermark.style.bottom = '15px';
-    watermark.style.left = '20px';
-    watermark.style.fontSize = '14px';
-    watermark.style.color = '#888';
-    
-    // Add logo to watermark if available
-    if (config.watermarkUrl) {
+    // Add logo in bottom left corner (WeChat style)
+    if (config.logoUrl) {
       const logo = document.createElement('img');
-      logo.src = config.watermarkUrl;
-      logo.style.height = '20px';
-      logo.style.marginRight = '8px';
-      watermark.appendChild(logo);
+      logo.src = config.logoUrl;
+      logo.style.position = 'absolute';
+      logo.style.bottom = '15px';
+      logo.style.left = '20px';
+      logo.style.height = '24px';
+      logo.style.width = 'auto';
+      logo.style.opacity = '0.8';
+      container.appendChild(logo);
     }
     
-    // Add text to watermark
-    const watermarkTextElement = document.createElement('span');
-    watermarkTextElement.textContent = config.watermarkText;
-    watermark.appendChild(watermarkTextElement);
-    
+    // Add watermark text (separate from logo)
+    const watermark = document.createElement('div');
+    watermark.style.position = 'absolute';
+    watermark.style.bottom = '15px';
+    watermark.style.left = '55px'; // 调整位置，避免与logo重叠
+    watermark.style.fontSize = '12px';
+    watermark.style.color = '#999';
+    watermark.textContent = config.watermarkText;
     container.appendChild(watermark);
     
     // Add QR code if QRCode.js is available
