@@ -14,7 +14,7 @@
     watermarkUrl: 'https://shuli-gz-1259749012.cos.ap-guangzhou.myqcloud.com/img/ShuLiLogo1.png',
     backgroundColor: '#ffffff',
     textColor: '#34495e',
-    fontFamily: 'Source Sans Pro, Helvetica Neue, Arial, sans-serif',
+    fontFamily: '"hk4e_zh-cn", Georgia, Times New Roman, serif',
     fontSize: '16px',
     padding: '20px',
     borderRadius: '8px',
@@ -28,6 +28,12 @@
   function appendStyles() {
     const style = document.createElement('style');
     style.textContent = `
+      @font-face {
+        font-family: 'hk4e_zh-cn';
+        src: url('../res/fonts/hk4e_zh-cn.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+      }
       .share-image-button {
         position: absolute;
         background-color: ${config.buttonColor};
@@ -138,7 +144,7 @@
     container.style.fontSize = config.fontSize;
     container.style.padding = config.padding;
     container.style.borderRadius = config.borderRadius;
-    container.style.maxWidth = config.maxWidth;
+    container.style.maxWidth = '400px'; // 限制宽度以适应竖版
     container.style.boxShadow = `0 4px 15px ${config.shadowColor}`;
     container.style.position = 'relative';
     container.style.width = '100%';
@@ -146,8 +152,8 @@
     
     // Add the selected text
     const textContent = document.createElement('div');
-    textContent.style.marginBottom = '30px';
-    textContent.innerHTML = selection.toString();
+    textContent.style.marginBottom = '40px'; // 增加底部边距，为水印和二维码留出空间
+    textContent.innerHTML = selection.toString().replace(/\n/g, '<br>');
     container.appendChild(textContent);
     
     // Add watermark
@@ -155,7 +161,7 @@
     watermark.style.display = 'flex';
     watermark.style.alignItems = 'center';
     watermark.style.position = 'absolute';
-    watermark.style.bottom = '10px';
+    watermark.style.bottom = '15px';
     watermark.style.left = '20px';
     watermark.style.fontSize = '14px';
     watermark.style.color = '#888';
@@ -178,24 +184,46 @@
     
     // Add QR code if QRCode.js is available
     if (typeof QRCode !== 'undefined') {
-      // Create QR code for current page
-      const qrContainer = document.createElement('div');
-      qrContainer.style.position = 'absolute';
-      qrContainer.style.bottom = '10px';
-      qrContainer.style.right = '20px';
-      qrContainer.style.width = '80px';
-      qrContainer.style.height = '80px';
-      container.appendChild(qrContainer);
-      
-      // Generate QR code for current page
-      new QRCode(qrContainer, {
-        text: window.location.href,
-        width: 80,
-        height: 80,
-        colorDark: '#000000',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.H
-      });
+      // 检查是否有ShareAsImageExtensions扩展
+      if (window.ShareAsImageExtensions && window.ShareAsImageExtensions.generateQRCode) {
+        // 使用扩展中的QR码生成函数
+        const qrContainer = document.createElement('div');
+        qrContainer.style.position = 'absolute';
+        qrContainer.style.bottom = '15px';
+        qrContainer.style.right = '20px';
+        qrContainer.style.width = '80px';
+        qrContainer.style.height = '80px';
+        container.appendChild(qrContainer);
+        
+        // 使用扩展中的函数生成QR码
+        new QRCode(qrContainer, {
+          text: window.ShareAsImageExtensions.getCurrentPageUrl(true), // 包含段落ID
+          width: 80,
+          height: 80,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H
+        });
+      } else {
+        // 如果没有扩展，使用默认方法
+        const qrContainer = document.createElement('div');
+        qrContainer.style.position = 'absolute';
+        qrContainer.style.bottom = '15px';
+        qrContainer.style.right = '20px';
+        qrContainer.style.width = '80px';
+        qrContainer.style.height = '80px';
+        container.appendChild(qrContainer);
+        
+        // 使用当前页面URL生成QR码
+        new QRCode(qrContainer, {
+          text: window.location.href,
+          width: 80,
+          height: 80,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H
+        });
+      }
       
       // Add QR code hint
       const qrHint = document.createElement('div');
@@ -271,6 +299,49 @@
       link.click();
     });
     actions.appendChild(downloadBtn);
+    
+    // Copy to clipboard button
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'share-image-action-button';
+    copyBtn.textContent = '复制到剪贴板';
+    copyBtn.addEventListener('click', () => {
+      canvas.toBlob(blob => {
+        try {
+          // 创建ClipboardItem对象
+          const item = new ClipboardItem({ 'image/png': blob });
+          // 写入剪贴板
+          navigator.clipboard.write([item])
+            .then(() => {
+              // 显示成功提示
+              const toast = document.createElement('div');
+              toast.style.position = 'fixed';
+              toast.style.bottom = '20px';
+              toast.style.left = '50%';
+              toast.style.transform = 'translateX(-50%)';
+              toast.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+              toast.style.color = 'white';
+              toast.style.padding = '10px 20px';
+              toast.style.borderRadius = '4px';
+              toast.style.zIndex = '1002';
+              toast.textContent = '已复制到剪贴板';
+              document.body.appendChild(toast);
+              
+              // 2秒后移除提示
+              setTimeout(() => {
+                document.body.removeChild(toast);
+              }, 2000);
+            })
+            .catch(err => {
+              console.error('复制到剪贴板失败:', err);
+              alert('复制到剪贴板失败，请尝试使用保存图片功能');
+            });
+        } catch (err) {
+          console.error('您的浏览器不支持复制图片到剪贴板:', err);
+          alert('您的浏览器不支持复制图片到剪贴板，请尝试使用保存图片功能');
+        }
+      });
+    });
+    actions.appendChild(copyBtn);
     
     // Close button
     const closeBtn = document.createElement('button');

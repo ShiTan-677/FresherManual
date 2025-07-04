@@ -74,6 +74,23 @@
   <!-- ShareAsImage plugin -->
   <script src="src/QRCode.js"></script>
   <script src="src/ShareAsImage.js"></script>
+  <!-- QRCode配置脚本 -->
+  <script>
+    // 配置QRCode生成器
+    // 如果在GitHub Pages上运行，则设置为true
+    // 如果在本地运行，则设置为false
+    if (window.ShareAsImageExtensions && window.ShareAsImageExtensions.setQRCodeConfig) {
+      // 默认使用本地URL，如需使用GitHub Pages URL，请将useGitHubPages设置为true
+      window.ShareAsImageExtensions.setQRCodeConfig({
+        useGitHubPages: true, // 设置为true使用GitHub Pages URL，设置为false使用当前页面URL
+        githubPagesBaseUrl: 'https://shulicollege.github.io/FresherManual/',
+        includeFragmentId: true // 是否在URL中包含段落ID
+      });
+      console.log('QRCode config set. Current page URL (with config):', window.ShareAsImageExtensions.getCurrentPageUrl(true));
+    } else {
+      console.log('ShareAsImageExtensions or setQRCodeConfig not available.');
+    }
+  </script>
   <script>
     /*!
  * docsify-plugin-flexible-alerts
