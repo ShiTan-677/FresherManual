@@ -12,6 +12,7 @@
     buttonText: '分享为图片',
     watermarkText: '树礼书院新生手册',
     logoUrl: 'res/img/ShuLiLogo1.png',
+    backgroundImageUrl: 'res/img/mainpage/LiBaoArt_byHuangHongKai.png', // 吉祥物图片作为背景
     backgroundColor: '#ffffff',
     textColor: '#34495e',
     fontFamily: '"hk4e_zh-cn", Georgia, Times New Roman, serif',
@@ -149,12 +150,97 @@
     container.style.position = 'relative';
     container.style.width = '100%';
     container.style.boxSizing = 'border-box';
+    container.style.overflow = 'hidden'; // 确保背景图片不会溢出容器
+    container.style.minHeight = '500px'; // 确保容器有足够的高度显示背景图片
+    
+    // 创建背景图片包装器，但暂不添加到容器中
+    let bgWrapper = null;
+    let backgroundImg = null;
+    
+    if (config.backgroundImageUrl) {
+      // 创建一个包装器div来包含背景图片，确保正确定位
+      bgWrapper = document.createElement('div');
+      bgWrapper.style.position = 'absolute';
+      bgWrapper.style.top = '0';
+      bgWrapper.style.left = '0';
+      bgWrapper.style.width = '100%';
+      bgWrapper.style.height = '100%';
+      bgWrapper.style.zIndex = '0';
+      bgWrapper.style.overflow = 'hidden';
+      
+      // 使用图片元素而不是CSS背景
+      backgroundImg = document.createElement('img');
+      
+      // 使用绝对路径，确保图片能被正确加载
+      // 获取当前页面的基础URL
+      const baseUrl = window.location.origin + '/';
+      const imgPath = config.backgroundImageUrl.replace(/^\.\//g, '');
+      const absoluteUrl = baseUrl + imgPath;
+      
+      console.log('尝试加载图片，绝对路径:', absoluteUrl);
+      backgroundImg.src = absoluteUrl;
+      
+      // 设置图片样式
+      backgroundImg.style.width = '100%';
+      backgroundImg.style.height = 'auto';
+      backgroundImg.style.objectFit = 'cover'; // 改为cover以填充容器
+      backgroundImg.style.objectPosition = 'center top'; // 优先显示上半部分
+      backgroundImg.style.opacity = '0.6'; // 增加不透明度
+      
+      // 添加图片加载事件，确保图片加载完成
+      backgroundImg.onload = function() {
+        console.log('背景图片加载成功:', absoluteUrl);
+        console.log('图片尺寸:', backgroundImg.naturalWidth, 'x', backgroundImg.naturalHeight);
+        backgroundImg.setAttribute('data-loaded', 'true');
+      };
+      
+      backgroundImg.onerror = function(e) {
+        console.error('背景图片加载失败:', absoluteUrl, e);
+        // 尝试使用相对路径作为备选
+        console.log('尝试使用相对路径:', config.backgroundImageUrl);
+        backgroundImg.src = config.backgroundImageUrl;
+      };
+      
+      // 将背景图片添加到包装器中
+      bgWrapper.appendChild(backgroundImg);
+    }
     
     // Add the selected text
     const textContent = document.createElement('div');
     textContent.style.marginBottom = '40px'; // 增加底部边距，为水印和二维码留出空间
+    textContent.style.position = 'relative'; // 相对定位
+    textContent.style.zIndex = '1'; // 确保文本在背景图片上方
+    textContent.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'; // 半透明背景，提高文字可读性
+    textContent.style.padding = '15px'; // 内边距
+    textContent.style.borderRadius = '5px'; // 圆角
     textContent.innerHTML = selection.toString().replace(/\n/g, '<br>');
     container.appendChild(textContent);
+    
+    // 现在添加背景图片包装器（在文本内容之后）
+    if (bgWrapper && backgroundImg) {
+      // 先添加到容器中，以便能够获取文本内容的高度
+      container.insertBefore(bgWrapper, container.firstChild);
+      
+      // 等待DOM更新，然后调整高度
+      setTimeout(() => {
+        // 获取文本内容的高度
+        let textHeight = textContent.offsetHeight;
+        console.log('文本内容高度:', textHeight);
+        
+        // 根据文本内容动态调整图片显示高度
+        // 设置最小高度为文本高度加上一些额外空间（用于水印、二维码等）
+        const extraSpace = 150; // 为水印、二维码等元素预留的空间
+        const minHeight = Math.max(textHeight + extraSpace, 300); // 最小300px
+        const maxHeight = Math.min(backgroundImg.naturalHeight || 800, 800); // 最大800px
+        
+        // 如果文本内容较少，则显示较少的图片高度
+        const adjustedHeight = Math.min(minHeight, maxHeight);
+        container.style.minHeight = adjustedHeight + 'px';
+        bgWrapper.style.height = adjustedHeight + 'px';
+        
+        console.log('调整后的容器高度:', adjustedHeight);
+      }, 0);
+    }
     
     // Add logo in bottom left corner (WeChat style)
     if (config.logoUrl) {
@@ -250,22 +336,78 @@
     container.style.left = '-9999px';
     document.body.appendChild(container);
     
-    // Use html2canvas to create an image
-    html2canvas(container, { 
-      backgroundColor: config.backgroundColor,
-      scale: 2, // Higher resolution
-      logging: false,
-      useCORS: true
-    }).then(canvas => {
-      // Remove the temporary container
-      document.body.removeChild(container);
-      
-      // Hide the share button
-      document.querySelector('.share-image-button').style.display = 'none';
-      
-      // Create a modal to display the image
-      showImagePreview(canvas);
-    });
+    // 添加调试信息
+     console.log('准备生成图片，容器尺寸:', container.offsetWidth, 'x', container.offsetHeight);
+     console.log('背景图片URL:', config.backgroundImageUrl);
+     
+     // 确保所有图片都已加载
+     const allImages = container.querySelectorAll('img');
+     console.log('容器中的图片数量:', allImages.length);
+     
+     // 显示所有图片的加载状态和路径
+     allImages.forEach((img, index) => {
+       console.log(`图片 ${index}:`, {
+         src: img.src,
+         complete: img.complete,
+         naturalWidth: img.naturalWidth,
+         naturalHeight: img.naturalHeight,
+         dataLoaded: img.getAttribute('data-loaded')
+       });
+     });
+     
+     // 设置较长的超时时间，确保图片有足够时间加载
+      setTimeout(() => {
+        console.log('开始生成canvas，延迟确保图片加载');
+        
+        // 再次检查图片状态
+        allImages.forEach((img, index) => {
+          console.log(`图片 ${index} 最终状态:`, {
+            src: img.src,
+            complete: img.complete,
+            naturalWidth: img.naturalWidth,
+            naturalHeight: img.naturalHeight
+          });
+        });
+        
+        // Use html2canvas to create an image
+        html2canvas(container, { 
+          backgroundColor: config.backgroundColor,
+          scale: 2, // Higher resolution
+          logging: true, // 启用日志以便调试
+          useCORS: true,
+          allowTaint: true, // 允许跨域图片
+          imageTimeout: 0, // 禁用图片加载超时
+          onclone: function(clonedDoc) {
+            // 检查克隆后的文档中的图片
+            const clonedContainer = clonedDoc.querySelector('div');
+            const clonedImages = clonedContainer.querySelectorAll('img');
+            console.log('克隆后的图片数量:', clonedImages.length);
+            
+            // 确保克隆的图片已加载
+            clonedImages.forEach((img, index) => {
+              console.log(`克隆图片 ${index}:`, {
+                src: img.src,
+                complete: img.complete,
+                naturalWidth: img.naturalWidth,
+                naturalHeight: img.naturalHeight
+              });
+            });
+          }
+        }).then(canvas => {
+          // Remove the temporary container
+          document.body.removeChild(container);
+          
+          // Hide the share button
+          document.querySelector('.share-image-button').style.display = 'none';
+          
+          // Create a modal to display the image
+          showImagePreview(canvas);
+        }).catch(error => {
+           console.error('生成图片时出错:', error);
+           alert('生成图片时出错，请重试');
+           document.body.removeChild(container);
+         });
+        }, 1000); // 等待1秒，确保图片加载完成
   }
 
   // Show the image preview in a modal
