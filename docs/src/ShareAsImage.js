@@ -249,39 +249,62 @@
       logo.style.position = 'absolute';
       logo.style.bottom = '15px';
       logo.style.left = '20px';
-      logo.style.height = '24px';
+      logo.style.height = '60px'; // 增加logo高度
       logo.style.width = 'auto';
-      logo.style.opacity = '0.8';
+      logo.style.opacity = '0.9'; // 增加不透明度
       container.appendChild(logo);
     }
     
     // Add watermark text (separate from logo)
     const watermark = document.createElement('div');
     watermark.style.position = 'absolute';
-    watermark.style.bottom = '15px';
-    watermark.style.left = '55px'; // 调整位置，避免与logo重叠
-    watermark.style.fontSize = '12px';
-    watermark.style.color = '#999';
+    watermark.style.bottom = '30px';
+    watermark.style.left = '80px'; // 调整位置，避免与更大的logo重叠
+    watermark.style.fontSize = '20px'; // 增加字体大小
+    //watermark.style.fontWeight = 'bold'; // 添加粗体
+    watermark.style.color = '#666'; // 颜色更深，增加可见度
     watermark.textContent = config.watermarkText;
     container.appendChild(watermark);
     
     // Add QR code if QRCode.js is available
     if (typeof QRCode !== 'undefined') {
+      // 创建一个QR码区域包装器，放在右下角
+      const qrWrapper = document.createElement('div');
+      qrWrapper.style.position = 'absolute';
+      qrWrapper.style.bottom = '15px'; // 放在底部
+      qrWrapper.style.right = '15px';
+      qrWrapper.style.width = '90px';
+      qrWrapper.style.height = 'auto';
+      qrWrapper.style.zIndex = '2'; // 确保在文本上方
+      qrWrapper.style.backgroundColor = 'rgba(255, 255, 255, 0.9)'; // 半透明白色背景
+      qrWrapper.style.borderRadius = '5px';
+      qrWrapper.style.padding = '5px';
+      qrWrapper.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
+      container.appendChild(qrWrapper);
+      
+      // 添加QR码提示文字
+      const qrHint = document.createElement('div');
+      qrHint.style.fontSize = '10px';
+      qrHint.style.color = '#666';
+      qrHint.style.textAlign = 'center';
+      qrHint.style.marginBottom = '3px';
+      qrHint.style.fontWeight = 'bold';
+      qrHint.textContent = '扫码阅读完整内容';
+      qrWrapper.appendChild(qrHint);
+      
+      // 创建QR码容器
+      const qrContainer = document.createElement('div');
+      qrContainer.style.width = '80px';
+      qrContainer.style.height = '80px';
+      qrContainer.style.margin = '0 auto';
+      qrWrapper.appendChild(qrContainer);
+      
       // 检查是否有ShareAsImageExtensions扩展
       if (window.ShareAsImageExtensions && window.ShareAsImageExtensions.generateQRCode) {
-        // 使用扩展中的QR码生成函数
-        const qrContainer = document.createElement('div');
-        qrContainer.style.position = 'absolute';
-        qrContainer.style.bottom = '15px';
-        qrContainer.style.right = '20px';
-        qrContainer.style.width = '80px';
-        qrContainer.style.height = '80px';
-        container.appendChild(qrContainer);
-        
         // 使用扩展中的函数生成QR码
         new QRCode(qrContainer, {
           text: window.ShareAsImageExtensions.getCurrentPageUrl(true), // 包含段落ID
-          width: 80,
+          width: 80, // 恢复原始尺寸
           height: 80,
           colorDark: '#000000',
           colorLight: '#ffffff',
@@ -289,46 +312,33 @@
         });
       } else {
         // 如果没有扩展，使用默认方法
-        const qrContainer = document.createElement('div');
-        qrContainer.style.position = 'absolute';
-        qrContainer.style.bottom = '15px';
-        qrContainer.style.right = '20px';
-        qrContainer.style.width = '80px';
-        qrContainer.style.height = '80px';
-        container.appendChild(qrContainer);
-        
-        // 使用当前页面URL生成QR码
         new QRCode(qrContainer, {
           text: window.location.href,
-          width: 80,
+          width: 80, // 恢复原始尺寸
           height: 80,
           colorDark: '#000000',
           colorLight: '#ffffff',
           correctLevel: QRCode.CorrectLevel.H
         });
       }
-      
-      // Add QR code hint
-      const qrHint = document.createElement('div');
-      qrHint.style.position = 'absolute';
-      qrHint.style.bottom = '95px';
-      qrHint.style.right = '20px';
-      qrHint.style.fontSize = '12px';
-      qrHint.style.color = '#888';
-      qrHint.style.textAlign = 'center';
-      qrHint.style.width = '80px';
-      qrHint.textContent = '扫码阅读完整内容';
-      container.appendChild(qrHint);
     } else {
-      // Add QR code hint without actual QR code
-      const qrHint = document.createElement('div');
-      qrHint.style.position = 'absolute';
-      qrHint.style.bottom = '10px';
-      qrHint.style.right = '20px';
-      qrHint.style.fontSize = '14px';
-      qrHint.style.color = '#888';
-      qrHint.textContent = '树礼书院新生手册';
-      container.appendChild(qrHint);
+      // 如果QRCode库不可用，添加一个简单的提示
+      const qrWrapper = document.createElement('div');
+      qrWrapper.style.position = 'absolute';
+      qrWrapper.style.bottom = '15px';
+      qrWrapper.style.right = '15px';
+      qrWrapper.style.width = '90px';
+      qrWrapper.style.height = 'auto';
+      qrWrapper.style.zIndex = '2';
+      qrWrapper.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+      qrWrapper.style.borderRadius = '5px';
+      qrWrapper.style.padding = '5px';
+      qrWrapper.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
+      qrWrapper.style.textAlign = 'center';
+      qrWrapper.style.fontSize = '12px';
+      qrWrapper.style.color = '#666';
+      qrWrapper.textContent = '树礼书院新生手册';
+      container.appendChild(qrWrapper);
     }
     
     // Temporarily add to document to get dimensions
